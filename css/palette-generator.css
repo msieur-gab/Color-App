@@ -1,0 +1,150 @@
+/* Palette Generator Component Styles */
+color-palette-generator {
+  display: block;
+}
+
+.palette-generator {
+  width: 100%;
+}
+
+.palette-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  flex: 1;
+}
+
+.control-group label {
+  margin-bottom: var(--spacing-xs);
+  font-weight: 500;
+}
+
+.color-input-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.color-input-group input[type="text"] {
+  flex: 1;
+}
+
+.button-group {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.button-group button {
+  flex: 1;
+  white-space: nowrap;
+}
+
+/* Current Palette */
+.current-palette {
+  margin-bottom: var(--spacing-lg);
+}
+
+.current-palette h2 {
+  margin-bottom: var(--spacing-md);
+}
+
+.palette-colors {
+  display: flex;
+  flex-wrap: nowrap;
+  height: 120px;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.palette-color {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: var(--spacing-md);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.palette-color:hover {
+  transform: scale(1.05);
+  z-index: 1;
+}
+
+.color-hex {
+  background-color: rgba(0, 0, 0, 0.2);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+/* Color Pills */
+.color-pills {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--spacing-sm);
+}
+
+.color-pill {
+  flex: 1;
+  height: 24px;
+  border-radius: var(--border-radius);
+  margin: 0 var(--spacing-xs);
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  .palette-controls {
+    flex-direction: column;
+  }
+  
+  .control-group {
+    width: 100%;
+    min-width: 100%;
+  }
+  
+  .palette-colors {
+    height: 100px;
+  }
+  
+  .color-hex {
+    font-size: 0.75rem;
+  }
+}
+
+/* Tooltip for copying */
+.tooltip {
+  position: relative;
+}
+
+.tooltip .tooltip-text {
+  visibility: hidden;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  text-align: center;
+  padding: 5px 10px;
+  border-radius: 4px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
