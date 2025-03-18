@@ -131,6 +131,7 @@ class SavedPalettes extends HTMLElement {
         
         <div class="palette-info">
           <div class="palette-info-text">
+            <span class="palette-name">${palette.name || 'Unnamed Palette'}</span>
             <span class="harmony-type">${HarmonyGenerator.getHarmonyName(palette.harmonyType)}</span>
             <span class="base-color">${palette.baseColor}</span>
           </div>
@@ -260,11 +261,21 @@ class SavedPalettes extends HTMLElement {
         generator.state.baseColor = palette.baseColor;
         generator.state.harmonyType = palette.harmonyType;
         generator.state.palette = [...palette.colors];
+        generator.state.paletteName = palette.name;
         
         // Update UI
         generator.querySelector('#base-color').value = palette.baseColor;
         generator.querySelector('#hex-input').value = palette.baseColor;
         generator.querySelector('#harmony-type').value = palette.harmonyType;
+        generator.querySelector('#palette-name').value = palette.name;
+        generator.querySelector('#color-count').value = palette.colorCount;
+        
+        // Update color count button states
+        const decreaseBtn = generator.querySelector('#decrease-count');
+        const increaseBtn = generator.querySelector('#increase-count');
+        decreaseBtn.disabled = palette.colorCount <= 3;
+        increaseBtn.disabled = palette.colorCount >= 10;
+        
         generator._updatePaletteColors();
         
         // Show toast
@@ -293,7 +304,7 @@ class SavedPalettes extends HTMLElement {
       }
       
       const dataStr = JSON.stringify(palette, null, 2);
-      this._downloadJSON(dataStr, `palette-${id}.json`);
+      this._downloadJSON(dataStr, `palette-${palette.name || id}.json`);
       this._showToast('Palette exported!');
     } catch (error) {
       console.error('Error exporting palette:', error);

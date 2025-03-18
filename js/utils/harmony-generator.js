@@ -29,6 +29,12 @@ class HarmonyGenerator {
       case 'complementary':
         palette = this.generateComplementary(baseColor, hsl, colorCount);
         break;
+      case 'splitComplementary':
+        palette = this.generateSplitComplementary(baseColor, hsl, colorCount);
+        break;
+      case 'compound':
+        palette = this.generateCompound(baseColor, hsl, colorCount);
+        break;
       case 'triadic':
         palette = this.generateTriadic(baseColor, hsl, colorCount);
         break;
@@ -217,6 +223,133 @@ class HarmonyGenerator {
     
     return colors;
   }
+
+  /**
+   * Generate split complementary color scheme
+   * Base color plus two colors adjacent to its complement
+   * @param {string} baseColor - Base hex color
+   * @param {Object} hsl - HSL values of base color
+   * @param {number} colorCount - Number of colors to generate
+   * @returns {Array} Array of hex color strings
+   */
+  static generateSplitComplementary(baseColor, hsl, colorCount = 5) {
+    const colors = [];
+    
+    // The three main split complementary colors
+    const complementHue = (hsl.h + 180) % 360;
+    const splitAngle = 30; // 30° offset from complement
+    
+    const mainColors = [
+      baseColor, // Original color
+      ColorConverter.hslToHex((complementHue + splitAngle) % 360, hsl.s, hsl.l), // Split 1
+      ColorConverter.hslToHex((complementHue - splitAngle + 360) % 360, hsl.s, hsl.l) // Split 2
+    ];
+    
+    if (colorCount <= 3) {
+      // If we need 3 or fewer colors, just return the main colors
+      return mainColors.slice(0, colorCount);
+    } else {
+      // For more than 3 colors, add variations of the main colors
+      colors.push(...mainColors);
+      
+      // We need (colorCount - 3) more colors
+      const remaining = colorCount - 3;
+      
+      // Add variations of each of the three primary colors
+      for (let i = 0; i < remaining; i++) {
+        const colorIndex = i % 3; // Cycle through the 3 main colors
+        const isLighter = Math.floor(i / 3) % 2 === 0; // Alternate lighter/darker
+        
+        let baseHue;
+        if (colorIndex === 0) {
+          baseHue = hsl.h;
+        } else if (colorIndex === 1) {
+          baseHue = (complementHue + splitAngle) % 360;
+        } else {
+          baseHue = (complementHue - splitAngle + 360) % 360;
+        }
+        
+        if (isLighter) {
+          colors.push(ColorConverter.hslToHex(
+            baseHue, 
+            Math.min(hsl.s + 10, 100), 
+            Math.min(hsl.l + 15, 95)
+          ));
+        } else {
+          colors.push(ColorConverter.hslToHex(
+            baseHue, 
+            Math.max(hsl.s - 10, 0), 
+            Math.max(hsl.l - 15, 5)
+          ));
+        }
+      }
+    }
+    
+    return colors;
+  }
+
+  /**
+   * Generate compound color scheme (also known as complementary plus analogous)
+   * Combines complementary with analogous colors
+   * @param {string} baseColor - Base hex color
+   * @param {Object} hsl - HSL values of base color
+   * @param {number} colorCount - Number of colors to generate
+   * @returns {Array} Array of hex color strings
+   */
+  static generateCompound(baseColor, hsl, colorCount = 5) {
+    const colors = [];
+    
+    // Complementary hue
+    const complementHue = (hsl.h + 180) % 360;
+    
+    // Main colors in the compound scheme
+    // 1. Base color
+    // 2. Analogous +30°
+    // 3. Analogous -30°
+    // 4. Complement
+    // 5. Complement analogous +30°
+    const mainColors = [
+      baseColor, // Original color
+      ColorConverter.hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l), // Analogous +30°
+      ColorConverter.hslToHex((hsl.h - 30 + 360) % 360, hsl.s, hsl.l), // Analogous -30°
+      ColorConverter.hslToHex(complementHue, hsl.s, hsl.l), // Complement
+      ColorConverter.hslToHex((complementHue + 30) % 360, hsl.s, hsl.l) // Complement analogous +30°
+    ];
+    
+    if (colorCount <= 5) {
+      // If we need 5 or fewer colors, just return the main colors
+      return mainColors.slice(0, colorCount);
+    } else {
+      // For more than 5 colors, add variations of the main colors
+      colors.push(...mainColors);
+      
+      // We need (colorCount - 5) more colors
+      const remaining = colorCount - 5;
+      
+      // Add lighter and darker versions of base color and complement
+      for (let i = 0; i < remaining; i++) {
+        // Alternate between base side and complement side
+        const baseHue = i % 2 === 0 ? hsl.h : complementHue;
+        const isLighter = Math.floor(i / 2) % 2 === 0; // Alternate lighter/darker
+        
+        if (isLighter) {
+          colors.push(ColorConverter.hslToHex(
+            baseHue, 
+            Math.min(hsl.s + 10, 100), 
+            Math.min(hsl.l + 15, 95)
+          ));
+        } else {
+          colors.push(ColorConverter.hslToHex(
+            baseHue, 
+            Math.max(hsl.s - 10, 0), 
+            Math.max(hsl.l - 15, 5)
+          ));
+        }
+      }
+    }
+    
+    return colors;
+  }
   
   /**
    * Generate triadic color scheme
@@ -369,6 +502,8 @@ class HarmonyGenerator {
       'analogous': 'Analogous',
       'monochromatic': 'Monochromatic',
       'complementary': 'Complementary',
+      'splitComplementary': 'Split Complementary',
+      'compound': 'Compound',
       'triadic': 'Triadic',
       'square': 'Square',
       'shades': 'Shades'
@@ -386,6 +521,8 @@ class HarmonyGenerator {
       { id: 'analogous', name: 'Analogous' },
       { id: 'monochromatic', name: 'Monochromatic' },
       { id: 'complementary', name: 'Complementary' },
+      { id: 'splitComplementary', name: 'Split Complementary' },
+      { id: 'compound', name: 'Compound' },
       { id: 'triadic', name: 'Triadic' },
       { id: 'square', name: 'Square' },
       { id: 'shades', name: 'Shades' }

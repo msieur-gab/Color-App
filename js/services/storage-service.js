@@ -7,7 +7,7 @@ class PaletteStorageService {
     
     // Define database schema
     this.db.version(1).stores({
-      palettes: '++id, baseColor, harmonyType, dateCreated'
+      palettes: '++id, name, baseColor, harmonyType, dateCreated'
     });
     
     // Events
@@ -52,7 +52,7 @@ class PaletteStorageService {
     }
     
     // Set default name if not provided
-    if (!palette.name) {
+    if (!palette.name || palette.name.trim() === '') {
       const count = await this.getPaletteCount();
       palette.name = `Palette ${count + 1}`;
     }
@@ -75,6 +75,12 @@ class PaletteStorageService {
   async updatePalette(palette) {
     if (!palette.id) {
       throw new Error('Palette ID is required for update');
+    }
+    
+    // Ensure name is not empty
+    if (!palette.name || palette.name.trim() === '') {
+      const count = await this.getPaletteCount();
+      palette.name = `Palette ${count}`;
     }
     
     // Update the palette

@@ -45,7 +45,7 @@ class ColorPaletteGenerator extends HTMLElement {
    */
   _render() {
     this.innerHTML = `
-      <div class="card palette-generator">
+      <div class="card palette-generator sticky-generator">
         <div class="palette-controls">
           <div class="control-group">
             <label for="base-color">Base Color</label>
@@ -99,7 +99,6 @@ class ColorPaletteGenerator extends HTMLElement {
           <div class="control-group">
             <label>Actions</label>
             <div class="button-group">
-              <button id="generate-btn">Generate</button>
               <button id="save-btn" class="success">Save</button>
               <button id="copy-all-btn" class="purple">Copy All</button>
             </div>
@@ -248,13 +247,6 @@ class ColorPaletteGenerator extends HTMLElement {
       this.state.paletteName = e.target.value;
     });
     
-    // Generate button
-    const generateBtn = this.querySelector('#generate-btn');
-    generateBtn.addEventListener('click', () => {
-      this._generatePalette();
-      this._updatePaletteColors();
-    });
-    
     // Save palette button
     const saveBtn = this.querySelector('#save-btn');
     saveBtn.addEventListener('click', () => {
@@ -300,6 +292,13 @@ class ColorPaletteGenerator extends HTMLElement {
    * Save the current palette to storage
    */
   _savePalette() {
+    // Make sure we have a palette name
+    if (!this.state.paletteName.trim()) {
+      // Generate a default name if empty
+      this.state.paletteName = `${HarmonyGenerator.getHarmonyName(this.state.harmonyType)} Palette`;
+      this.querySelector('#palette-name').value = this.state.paletteName;
+    }
+    
     const palette = {
       name: this.state.paletteName,
       baseColor: this.state.baseColor,

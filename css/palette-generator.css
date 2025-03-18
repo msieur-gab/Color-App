@@ -7,6 +7,13 @@ color-palette-generator {
   width: 100%;
 }
 
+/* Sticky behavior for generator */
+.sticky-generator {
+  position: sticky;
+  top: 15px;
+  z-index: 10;
+}
+
 .palette-controls {
   display: flex;
   flex-wrap: wrap;
@@ -46,6 +53,32 @@ color-palette-generator {
   white-space: nowrap;
 }
 
+/* Color Count Control */
+.color-count-control {
+  display: flex;
+  align-items: center;
+}
+
+.color-count-control input {
+  width: 60px;
+  text-align: center;
+  margin: 0 var(--spacing-xs);
+}
+
+.count-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.count-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
 /* Current Palette */
 .current-palette {
   margin-bottom: var(--spacing-lg);
@@ -60,11 +93,14 @@ color-palette-generator {
   flex-wrap: nowrap;
   height: 120px;
   border-radius: var(--border-radius);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .palette-color {
-  flex: 1;
+  flex: 1 0 auto;
+  min-width: 80px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -113,11 +149,25 @@ color-palette-generator {
   }
   
   .palette-colors {
+    /* Set a fixed height on mobile, but let it scroll horizontally */
     height: 100px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+  
+  .palette-color {
+    /* Ensure each color has a min-width for visibility */
+    min-width: 90px;
+    scroll-snap-align: start;
   }
   
   .color-hex {
     font-size: 0.75rem;
+  }
+  
+  /* Keep sticky position on mobile but adjust top value */
+  .sticky-generator {
+    top: 5px;
   }
 }
 
