@@ -11,7 +11,8 @@ class ColorPaletteGenerator extends HTMLElement {
       harmonyType: 'analogous',
       colorCount: 5,
       paletteName: '',
-      palette: []
+      palette: [],
+      imagePreview: null
     };
     
     // Generate initial palette
@@ -62,6 +63,45 @@ class ColorPaletteGenerator extends HTMLElement {
                 placeholder="#RRGGBB"
               />
             </div>
+          </div>
+          
+          <div class="control-group">
+            <label for="image-upload">Extract From Image</label>
+            <div class="image-upload-container">
+              <input
+                type="file"
+                id="image-upload"
+                accept="image/*"
+                class="image-upload-input"
+              />
+              <label for="image-upload" class="image-upload-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h7"></path>
+                  <circle cx="16" cy="8" r="2"></circle>
+                  <path d="M3 16l5-5 8 8"></path>
+                </svg>
+                Browse...
+              </label>
+              ${this.state.imagePreview ? `
+                <button id="capture-color-btn" class="capture-color-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 2v2M12 20v2M2 12h2M20 12h2"></path>
+                  </svg>
+                  Extract Colors
+                </button>
+              ` : ''}
+            </div>
+            ${this.state.imagePreview ? `
+              <div class="image-preview-container">
+                <img src="${this.state.imagePreview}" alt="Preview" class="image-preview" />
+                <button id="remove-image-btn" class="remove-image-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+            ` : ''}
           </div>
           
           <div class="control-group">
@@ -187,6 +227,40 @@ class ColorPaletteGenerator extends HTMLElement {
       }
     });
     
+    // Image upload
+    const imageUpload = this.querySelector('#image-upload');
+    imageUpload.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = event => {
+          this.state.imagePreview = event.target.result;
+          this._render();
+          this._attachEventListeners();
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+    
+    // Capture/extract colors from image
+    const captureBtn = this.querySelector('#capture-color-btn');
+    if (captureBtn) {
+      captureBtn.addEventListener('click', () => {
+        this._extractColorsFromImage();
+      });
+    }
+    
+    // Remove image
+    const removeImageBtn = this.querySelector('#remove-image-btn');
+    if (removeImageBtn) {
+      removeImageBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        this.state.imagePreview = null;
+        this._render();
+        this._attachEventListeners();
+      });
+    }
+    
     // Harmony type selector
     const harmonySelect = this.querySelector('#harmony-type');
     harmonySelect.addEventListener('change', e => {
@@ -271,6 +345,47 @@ class ColorPaletteGenerator extends HTMLElement {
   }
   
   /**
+   * Extract colors from the uploaded image
+   */
+  async _extractColorsFromImage() {
+    if (!this.state.imagePreview) return;
+    
+    try {
+      this._showToast('Extracting colors...', 'info');
+      
+      // Extract colors from the image
+      const colors = await ImageColorExtractor.extractPalette(
+        this.state.imagePreview, 
+        this.state.colorCount
+      );
+      
+      if (colors && colors.length > 0) {
+        // Set the base color to the first extracted color
+        this.state.baseColor = colors[0];
+        this.querySelector('#base-color').value = colors[0];
+        this.querySelector('#hex-input').value = colors[0];
+        
+        // Generate name suggestion
+        if (!this.state.paletteName) {
+          this.state.paletteName = 'Image Palette';
+          this.querySelector('#palette-name').value = this.state.paletteName;
+        }
+        
+        // Use the extracted colors as the palette
+        this.state.palette = colors;
+        this._updatePaletteColors();
+        
+        this._showToast('Colors extracted successfully!', 'success');
+      } else {
+        this._showToast('Could not extract colors. Try a different image.', 'error');
+      }
+    } catch (error) {
+      console.error('Error extracting colors:', error);
+      this._showToast('Error extracting colors', 'error');
+    }
+  }
+  
+  /**
    * Update palette colors without re-rendering everything
    */
   _updatePaletteColors() {
@@ -295,7 +410,9 @@ class ColorPaletteGenerator extends HTMLElement {
     // Make sure we have a palette name
     if (!this.state.paletteName.trim()) {
       // Generate a default name if empty
-      this.state.paletteName = `${HarmonyGenerator.getHarmonyName(this.state.harmonyType)} Palette`;
+      this.state.paletteName = this.state.imagePreview
+        ? 'Image Palette'
+        : `${HarmonyGenerator.getHarmonyName(this.state.harmonyType)} Palette`;
       this.querySelector('#palette-name').value = this.state.paletteName;
     }
     
@@ -341,7 +458,7 @@ class ColorPaletteGenerator extends HTMLElement {
   /**
    * Show toast message
    * @param {string} message - Message to show
-   * @param {string} type - Message type (default, error)
+   * @param {string} type - Message type (default, error, success, info)
    */
   _showToast(message, type = 'default') {
     const toast = this.querySelector('#toast');
@@ -355,8 +472,8 @@ class ColorPaletteGenerator extends HTMLElement {
     toast.textContent = message;
     toast.className = 'toast';
     
-    if (type === 'error') {
-      toast.classList.add('error');
+    if (type !== 'default') {
+      toast.classList.add(type);
     }
     
     // Show toast

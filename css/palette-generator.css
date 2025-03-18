@@ -43,6 +43,96 @@ color-palette-generator {
   flex: 1;
 }
 
+/* Image upload styles */
+.image-upload-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.image-upload-input {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+.image-upload-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
+  transition: var(--transition);
+  flex: 1;
+  justify-content: center;
+}
+
+.image-upload-label:hover {
+  background-color: var(--primary-dark);
+}
+
+.capture-color-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--secondary-color);
+  color: white;
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
+  border: none;
+  transition: var(--transition);
+}
+
+.capture-color-btn:hover {
+  background-color: var(--primary-dark);
+}
+
+.image-preview-container {
+  position: relative;
+  margin-top: var(--spacing-xs);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.image-preview {
+  width: 100%;
+  display: block;
+  max-height: 150px;
+  object-fit: contain;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.remove-image-btn:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
 .button-group {
   display: flex;
   gap: var(--spacing-sm);
@@ -137,6 +227,19 @@ color-palette-generator {
   margin: 0 var(--spacing-xs);
 }
 
+/* Toast types */
+.toast.success {
+  background-color: var(--success);
+}
+
+.toast.error {
+  background-color: #f44336;
+}
+
+.toast.info {
+  background-color: var(--primary-color);
+}
+
 /* Mobile Adjustments */
 @media (max-width: 768px) {
   .palette-controls {
@@ -168,6 +271,21 @@ color-palette-generator {
   /* Keep sticky position on mobile but adjust top value */
   .sticky-generator {
     top: 5px;
+  }
+  
+  /* Make the image preview responsive */
+  .image-preview {
+    max-height: 120px;
+  }
+  
+  /* Adjust image upload layout for mobile */
+  .image-upload-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .capture-color-btn {
+    margin-top: var(--spacing-xs);
   }
 }
 
