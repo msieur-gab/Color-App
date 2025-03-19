@@ -11,7 +11,8 @@ class CameraCapture extends HTMLElement {
       isOpen: false,
       stream: null,
       hasCamera: true,
-      capturedImage: null
+      capturedImage: null,
+      facingMode: 'environment' // Default to rear camera
     };
     
     // Check if camera is available on this device
@@ -92,6 +93,14 @@ class CameraCapture extends HTMLElement {
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
                 </button>
+                <button id="flip-camera-btn" class="camera-flip-btn">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9h6M9 9L7 11M9 9L7 7"></path>
+                    <path d="M21 15h-6m0 0l2 2m-2-2l2-2"></path>
+                    <path d="M9 15a6 6 0 006 0"></path>
+                    <path d="M15 9a6 6 0 00-6 0"></path>
+                  </svg>
+                </button>
               </div>
               
               <div id="captured-preview" class="captured-preview" style="display: none;">
@@ -140,6 +149,13 @@ class CameraCapture extends HTMLElement {
         this._capturePhoto();
       });
     }
+
+    const flipCameraBtn = this.querySelector('#flip-camera-btn');
+      if (flipCameraBtn) {
+        flipCameraBtn.addEventListener('click', () => {
+          this._flipCamera();
+        });
+      }
     
     // Retake button
     const retakeBtn = this.querySelector('#retake-btn');
@@ -185,6 +201,24 @@ class CameraCapture extends HTMLElement {
     
     this._startCamera();
   }
+
+  // Add a new method to flip the camera
+_flipCamera() {
+  // Toggle camera mode
+  this.state.facingMode = this.state.facingMode === 'environment' ? 'user' : 'environment';
+  
+  // Update video element class based on camera mode
+  const videoElement = this.querySelector('#camera-preview');
+  if (this.state.facingMode === 'user') {
+    videoElement.classList.add('camera-flipped');
+  } else {
+    videoElement.classList.remove('camera-flipped');
+  }
+  
+  // Restart camera with new mode
+  this._stopCamera();
+  this._startCamera();
+}
   
   /**
    * Close camera modal and stop camera
@@ -213,7 +247,7 @@ class CameraCapture extends HTMLElement {
     try {
       const constraints = {
         video: {
-          facingMode: 'environment', // Prefer back camera
+          facingMode: this.state.facingMode, // Use current facing mode
           width: { ideal: 1280 },
           height: { ideal: 720 }
         }
@@ -224,6 +258,13 @@ class CameraCapture extends HTMLElement {
       this.state.hasCamera = true;
       
       videoElement.srcObject = stream;
+      // Set appropriate class based on camera mode
+      if (this.state.facingMode === 'user') {
+        videoElement.classList.add('camera-flipped');
+      } else {
+        videoElement.classList.remove('camera-flipped');
+      }
+      
       cameraPreview.style.display = 'block';
       cameraControls.style.display = 'flex';
       noCamera.style.display = 'none';

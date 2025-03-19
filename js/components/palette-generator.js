@@ -18,6 +18,10 @@ class ColorPaletteGenerator extends HTMLElement {
     // Generate initial palette
     this._generatePalette();
     
+    // Camera state
+    this.cameraMode = 'environment'; // Default to rear camera
+    this.cameraStream = null;
+    
     // Toast message timeout
     this.toastTimeout = null;
   }
@@ -393,6 +397,15 @@ class ColorPaletteGenerator extends HTMLElement {
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
               </button>
+              
+              <button id="flip-camera-btn" class="camera-flip-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 9h6M9 9L7 11M9 9L7 7"></path>
+                  <path d="M21 15h-6m0 0l2 2m-2-2l2-2"></path>
+                  <path d="M9 15a6 6 0 006 0"></path>
+                  <path d="M15 9a6 6 0 00-6 0"></path>
+                </svg>
+              </button>
             </div>
             
             <div id="captured-preview" class="captured-preview" style="display: none;">
@@ -413,9 +426,6 @@ class ColorPaletteGenerator extends HTMLElement {
       
       document.body.appendChild(cameraModal);
       
-      // Stream state
-      this.cameraStream = null;
-      
       // Attach camera event listeners
       const closeCameraBtn = document.getElementById('close-camera-btn');
       closeCameraBtn.addEventListener('click', () => {
@@ -435,6 +445,11 @@ class ColorPaletteGenerator extends HTMLElement {
       const usePhotoBtn = document.getElementById('use-photo-btn');
       usePhotoBtn.addEventListener('click', () => {
         this._usePhoto();
+      });
+      
+      const flipCameraBtn = document.getElementById('flip-camera-btn');
+      flipCameraBtn.addEventListener('click', () => {
+        this._flipCamera();
       });
       
       // Close when clicking outside the modal content
@@ -478,7 +493,7 @@ class ColorPaletteGenerator extends HTMLElement {
     try {
       const constraints = {
         video: {
-          facingMode: 'environment', // Prefer back camera
+          facingMode: this.cameraMode,
           width: { ideal: 1280 },
           height: { ideal: 720 }
         }
@@ -488,6 +503,13 @@ class ColorPaletteGenerator extends HTMLElement {
       this.cameraStream = stream;
       
       videoElement.srcObject = stream;
+      
+      // Set appropriate class based on camera mode
+      if (this.cameraMode === 'user') {
+        videoElement.classList.add('camera-flipped');
+      } else {
+        videoElement.classList.remove('camera-flipped');
+      }
     } catch (error) {
       console.error('Error accessing camera:', error);
       
@@ -521,6 +543,26 @@ class ColorPaletteGenerator extends HTMLElement {
   }
   
   /**
+   * Flip between front and rear cameras
+   */
+  _flipCamera() {
+    // Toggle camera mode
+    this.cameraMode = this.cameraMode === 'environment' ? 'user' : 'environment';
+    
+    // Update video element class based on camera mode
+    const videoElement = document.getElementById('camera-preview');
+    if (this.cameraMode === 'user') {
+      videoElement.classList.add('camera-flipped');
+    } else {
+      videoElement.classList.remove('camera-flipped');
+    }
+    
+    // Restart camera with new mode
+    this._stopCamera();
+    this._startCamera();
+  }
+  
+  /**
    * Capture photo from camera
    */
   _capturePhoto() {
@@ -534,9 +576,22 @@ class ColorPaletteGenerator extends HTMLElement {
     canvasElement.width = videoElement.videoWidth;
     canvasElement.height = videoElement.videoHeight;
     
-    // Draw video frame to canvas
+    // Get the context and prepare for drawing
     const context = canvasElement.getContext('2d');
+    
+    // If using front camera (selfie mode), we need to flip the image horizontally
+    if (this.cameraMode === 'user') {
+      context.translate(canvasElement.width, 0);
+      context.scale(-1, 1);
+    }
+    
+    // Draw video frame to canvas
     context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+    
+    // Reset transform if we modified it
+    if (this.cameraMode === 'user') {
+      context.setTransform(1, 0, 0, 1, 0, 0);
+    }
     
     // Convert to image
     const imageDataUrl = canvasElement.toDataURL('image/png');

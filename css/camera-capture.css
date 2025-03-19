@@ -90,7 +90,7 @@ camera-capture {
   width: 100%;
   height: auto;
   display: block;
-  transform: scaleX(-1); /* Mirror effect when using front camera */
+  /* transform: scaleX(-1);  */
 }
 
 .camera-controls {
@@ -190,6 +190,33 @@ camera-capture {
 
 .no-camera p {
   margin-bottom: var(--spacing-md);
+}
+/* Add a toggle button for camera flipping */
+.camera-flip-btn {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background-color 0.2s ease;
+}
+
+.camera-flip-btn:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Class to apply when camera should be flipped (selfie mode) */
+.camera-flipped {
+  transform: scaleX(-1);
 }
 
 /* Media Queries */
