@@ -3,7 +3,7 @@
  * Enables offline functionality
  */
 
-const CACHE_NAME = 'color-palette-cache-v1.2';
+const CACHE_NAME = 'color-palette-cache-v1.3';
 
 // Get the base URL for relative paths
 const getScope = () => {
@@ -82,6 +82,16 @@ self.addEventListener('activate', event => {
 
 // Fetch event - serve from cache if available, otherwise fetch from network
 self.addEventListener('fetch', event => {
+  // Check if the request URL has a supported scheme (http or https)
+  // Skip caching for chrome-extension:// and other non-HTTP schemes
+  const requestUrl = event.request.url;
+  const url = new URL(requestUrl);
+  
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    // For non-HTTP schemes like chrome-extension://, just fetch without caching
+    return;
+  }
+  
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -106,7 +116,11 @@ self.addEventListener('fetch', event => {
           // Open cache and store response
           caches.open(CACHE_NAME)
             .then(cache => {
-              cache.put(event.request, responseToCache);
+              try {
+                cache.put(event.request, responseToCache);
+              } catch (error) {
+                console.error('Failed to cache response:', error);
+              }
             });
           
           return response;
