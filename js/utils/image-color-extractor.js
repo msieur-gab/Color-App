@@ -166,7 +166,7 @@ class ImageColorExtractor {
       if (a < 128) continue;
       
       // Round color values to reduce unique colors (color quantization)
-      const roundTo = 8;
+      const roundTo = 16; // Increased rounding to reduce color count
       const roundedR = Math.round(r / roundTo) * roundTo;
       const roundedG = Math.round(g / roundTo) * roundTo;
       const roundedB = Math.round(b / roundTo) * roundTo;
@@ -205,15 +205,22 @@ class ImageColorExtractor {
    * @private
    */
   static _filterSimilarColors(colors, maxColors) {
+    // FIX: The recursive call was causing the stack overflow
+    // Let's replace it with an iterative approach
     const result = [];
     const minDistance = 40; // Minimum distance between colors
     
-    for (const color of colors) {
-      if (result.length >= maxColors) break;
-      
-      // Check if this color is too similar to any already selected color
+    // Initialize with most frequent color
+    if (colors.length > 0) {
+      result.push(colors[0]);
+    }
+    
+    // Try to add more colors while keeping diversity
+    for (let i = 1; i < colors.length && result.length < maxColors; i++) {
+      const color = colors[i];
       let tooSimilar = false;
       
+      // Check if this color is too similar to any already selected color
       for (const selectedColor of result) {
         const distance = this._colorDistance(color.color, selectedColor.color);
         if (distance < minDistance) {
@@ -227,9 +234,38 @@ class ImageColorExtractor {
       }
     }
     
-    // If we don't have enough colors, lower the threshold and try again
-    if (result.length < maxColors && colors.length > maxColors) {
-      return this._filterSimilarColors(colors, maxColors, minDistance * 0.8);
+    // If we still don't have enough colors, relax the similarity constraint
+    if (result.length < maxColors) {
+      // Create a copy of colors without the colors already in result
+      const remainingColors = colors.filter(color => !result.includes(color));
+      const relaxedMinDistance = minDistance * 0.5;
+      
+      for (let i = 0; i < remainingColors.length && result.length < maxColors; i++) {
+        const color = remainingColors[i];
+        let tooSimilar = false;
+        
+        // Check with relaxed constraint
+        for (const selectedColor of result) {
+          const distance = this._colorDistance(color.color, selectedColor.color);
+          if (distance < relaxedMinDistance) {
+            tooSimilar = true;
+            break;
+          }
+        }
+        
+        if (!tooSimilar) {
+          result.push(color);
+        }
+      }
+      
+      // If we still need more colors, just add the remaining most frequent ones
+      if (result.length < maxColors) {
+        for (let i = 0; i < colors.length && result.length < maxColors; i++) {
+          if (!result.includes(colors[i])) {
+            result.push(colors[i]);
+          }
+        }
+      }
     }
     
     return result;

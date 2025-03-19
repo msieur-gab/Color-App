@@ -1,0 +1,226 @@
+/* Camera Capture Component Styles */
+camera-capture {
+  display: block;
+}
+
+.camera-capture-container {
+  margin-bottom: var(--spacing-md);
+}
+
+.open-camera-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--secondary-color);
+  color: white;
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
+  border: none;
+  transition: var(--transition);
+  justify-content: center;
+  width: 100%;
+}
+
+.open-camera-btn:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Camera Modal */
+.camera-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.camera-modal-content {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.camera-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.camera-header h3 {
+  margin: 0;
+}
+
+.close-camera-btn {
+  background: none;
+  border: none;
+  padding: var(--spacing-xs);
+  cursor: pointer;
+  display: flex;
+  color: var(--text-color);
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.close-camera-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.camera-body {
+  position: relative;
+  overflow: hidden;
+  background-color: #000;
+}
+
+#camera-preview {
+  width: 100%;
+  height: auto;
+  display: block;
+  transform: scaleX(-1); /* Mirror effect when using front camera */
+}
+
+.camera-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-md);
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+}
+
+.capture-btn {
+  background-color: white;
+  border: none;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.capture-btn:hover {
+  transform: scale(1.1);
+}
+
+.capture-btn svg {
+  color: var(--primary-color);
+}
+
+/* Captured preview */
+.captured-preview {
+  position: relative;
+  display: none;
+}
+
+#captured-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.captured-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+}
+
+.retake-btn, .use-photo-btn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius);
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.retake-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.retake-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.use-photo-btn {
+  background-color: var(--success);
+  color: white;
+}
+
+.use-photo-btn:hover {
+  background-color: var(--success-dark);
+}
+
+/* No camera message */
+.no-camera {
+  padding: var(--spacing-xl);
+  text-align: center;
+  color: white;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.no-camera p {
+  margin-bottom: var(--spacing-md);
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .camera-modal-content {
+    height: 100%;
+    max-height: none;
+    max-width: none;
+    border-radius: 0;
+  }
+  
+  .capture-btn {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .camera-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  #camera-preview, .captured-preview {
+    flex: 1;
+    display: flex;
+    object-fit: cover;
+  }
+  
+  #captured-image {
+    object-fit: contain;
+    max-height: 100%;
+    margin: auto;
+  }
+}

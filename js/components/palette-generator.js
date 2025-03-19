@@ -82,6 +82,15 @@ class ColorPaletteGenerator extends HTMLElement {
                 </svg>
                 Browse...
               </label>
+              
+              <button id="camera-btn" class="camera-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                Take Photo
+              </button>
+              
               ${this.state.imagePreview ? `
                 <button id="capture-color-btn" class="capture-color-btn">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -242,6 +251,14 @@ class ColorPaletteGenerator extends HTMLElement {
       }
     });
     
+    // Camera button
+    const cameraBtn = this.querySelector('#camera-btn');
+    if (cameraBtn) {
+      cameraBtn.addEventListener('click', () => {
+        this._openCamera();
+      });
+    }
+    
     // Capture/extract colors from image
     const captureBtn = this.querySelector('#capture-color-btn');
     if (captureBtn) {
@@ -342,6 +359,226 @@ class ColorPaletteGenerator extends HTMLElement {
         this._showToast(`Copied ${color} to clipboard!`);
       });
     });
+  }
+  
+  /**
+   * Open camera modal for taking a photo
+   */
+  _openCamera() {
+    // Create camera modal if it doesn't exist
+    if (!document.getElementById('camera-modal')) {
+      const cameraModal = document.createElement('div');
+      cameraModal.id = 'camera-modal';
+      cameraModal.className = 'camera-modal';
+      cameraModal.style.display = 'flex';
+      cameraModal.innerHTML = `
+        <div class="camera-modal-content">
+          <div class="camera-header">
+            <h3>Take a Photo</h3>
+            <button id="close-camera-btn" class="close-camera-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="camera-body">
+            <video id="camera-preview" autoplay playsinline></video>
+            <canvas id="camera-canvas" style="display: none;"></canvas>
+            
+            <div id="camera-controls" class="camera-controls">
+              <button id="capture-btn" class="capture-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            
+            <div id="captured-preview" class="captured-preview" style="display: none;">
+              <img id="captured-image" src="" alt="Captured photo">
+              <div class="captured-controls">
+                <button id="retake-btn" class="retake-btn">Retake</button>
+                <button id="use-photo-btn" class="use-photo-btn">Use This Photo</button>
+              </div>
+            </div>
+            
+            <div id="no-camera" class="no-camera" style="display: none;">
+              <p>Unable to access camera.</p>
+              <p>Please make sure you've given camera permissions or try a different browser.</p>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(cameraModal);
+      
+      // Stream state
+      this.cameraStream = null;
+      
+      // Attach camera event listeners
+      const closeCameraBtn = document.getElementById('close-camera-btn');
+      closeCameraBtn.addEventListener('click', () => {
+        this._closeCamera();
+      });
+      
+      const captureBtn = document.getElementById('capture-btn');
+      captureBtn.addEventListener('click', () => {
+        this._capturePhoto();
+      });
+      
+      const retakeBtn = document.getElementById('retake-btn');
+      retakeBtn.addEventListener('click', () => {
+        this._retakePhoto();
+      });
+      
+      const usePhotoBtn = document.getElementById('use-photo-btn');
+      usePhotoBtn.addEventListener('click', () => {
+        this._usePhoto();
+      });
+      
+      // Close when clicking outside the modal content
+      cameraModal.addEventListener('click', (e) => {
+        if (e.target === cameraModal) {
+          this._closeCamera();
+        }
+      });
+      
+      // Handle escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.cameraStream) {
+          this._closeCamera();
+        }
+      });
+      
+      // Start camera
+      this._startCamera();
+    } else {
+      // If modal already exists, show it and start camera
+      document.getElementById('camera-modal').style.display = 'flex';
+      this._startCamera();
+    }
+  }
+  
+  /**
+   * Start camera stream
+   */
+  async _startCamera() {
+    const videoElement = document.getElementById('camera-preview');
+    const noCamera = document.getElementById('no-camera');
+    const capturedPreview = document.getElementById('captured-preview');
+    const cameraControls = document.getElementById('camera-controls');
+    
+    // Reset UI
+    if (videoElement) videoElement.style.display = 'block';
+    if (capturedPreview) capturedPreview.style.display = 'none';
+    if (cameraControls) cameraControls.style.display = 'flex';
+    if (noCamera) noCamera.style.display = 'none';
+    
+    try {
+      const constraints = {
+        video: {
+          facingMode: 'environment', // Prefer back camera
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      this.cameraStream = stream;
+      
+      videoElement.srcObject = stream;
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      
+      if (videoElement) videoElement.style.display = 'none';
+      if (cameraControls) cameraControls.style.display = 'none';
+      if (noCamera) noCamera.style.display = 'flex';
+    }
+  }
+  
+  /**
+   * Close camera modal and stop camera
+   */
+  _closeCamera() {
+    const modal = document.getElementById('camera-modal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+    
+    this._stopCamera();
+  }
+  
+  /**
+   * Stop camera stream
+   */
+  _stopCamera() {
+    if (this.cameraStream) {
+      const tracks = this.cameraStream.getTracks();
+      tracks.forEach(track => track.stop());
+      this.cameraStream = null;
+    }
+  }
+  
+  /**
+   * Capture photo from camera
+   */
+  _capturePhoto() {
+    const videoElement = document.getElementById('camera-preview');
+    const canvasElement = document.getElementById('camera-canvas');
+    const capturedImage = document.getElementById('captured-image');
+    const capturedPreview = document.getElementById('captured-preview');
+    const cameraControls = document.getElementById('camera-controls');
+    
+    // Set canvas dimensions to match video
+    canvasElement.width = videoElement.videoWidth;
+    canvasElement.height = videoElement.videoHeight;
+    
+    // Draw video frame to canvas
+    const context = canvasElement.getContext('2d');
+    context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+    
+    // Convert to image
+    const imageDataUrl = canvasElement.toDataURL('image/png');
+    
+    // Update UI
+    capturedImage.src = imageDataUrl;
+    
+    // Show captured preview, hide camera controls
+    videoElement.style.display = 'none';
+    cameraControls.style.display = 'none';
+    capturedPreview.style.display = 'block';
+  }
+  
+  /**
+   * Retake photo
+   */
+  _retakePhoto() {
+    const videoElement = document.getElementById('camera-preview');
+    const capturedPreview = document.getElementById('captured-preview');
+    const cameraControls = document.getElementById('camera-controls');
+    
+    // Show video preview, hide captured preview
+    videoElement.style.display = 'block';
+    capturedPreview.style.display = 'none';
+    cameraControls.style.display = 'flex';
+  }
+  
+  /**
+   * Use captured photo
+   */
+  _usePhoto() {
+    const capturedImage = document.getElementById('captured-image');
+    
+    // Set the captured image as the preview
+    this.state.imagePreview = capturedImage.src;
+    
+    // Close the camera modal
+    this._closeCamera();
+    
+    // Re-render the component
+    this._render();
+    this._attachEventListeners();
   }
   
   /**

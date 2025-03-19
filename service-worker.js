@@ -3,17 +3,20 @@
  * Enables offline functionality
  */
 
-const CACHE_NAME = 'color-palette-cache-v1.1';
+const CACHE_NAME = 'color-palette-cache-v1.2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/css/styles.css',
   '/css/palette-generator.css',
   '/css/saved-palettes.css',
+  '/css/camera-capture.css',
   '/js/app.js',
   '/js/utils/color-converter.js',
   '/js/utils/harmony-generator.js',
+  '/js/utils/image-color-extractor.js',
   '/js/services/storage-service.js',
+  '/js/components/camera-capture.js',
   '/js/components/palette-generator.js',
   '/js/components/saved-palettes.js',
   '/lib/dexie.min.js'
