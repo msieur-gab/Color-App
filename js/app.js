@@ -31,7 +31,10 @@ function setupServiceWorker() {
   // Only register service worker in production
   if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
+      // Get the base URL to handle GitHub Pages path correctly
+      const baseUrl = location.pathname.replace(/\/(index\.html)?$/, '');
+      
+      navigator.serviceWorker.register(`${baseUrl}/service-worker.js`)
         .then(registration => {
           console.log('Service Worker registered with scope:', registration.scope);
         })
